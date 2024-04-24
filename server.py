@@ -94,7 +94,7 @@ def update_chessboard():
             if data is None or len(data.keys()) != 64:
                 return jsonify({"error": "Invalid chessboard data"}), 400
             chessboard.update(data)
-            jprint(chessboard)
+            #jprint(chessboard)
             #print(chessboard)
             return jsonify({"message": "Chessboard updated successfully"}), 200
 
@@ -102,7 +102,35 @@ def update_chessboard():
             return jsonify(chessboard), 200
 
     except Exception as e:
-        app.logger.error("An error occurred: %s", str(e))
+        app.logger.error("An error occurred with update_chessboard: %s", str(e))
+        return jsonify({"error": "Internal server error"}), 500
+    
+current_move = ""
+    
+@app.route('/move', methods=['POST', 'GET'])
+def move():
+    global current_move
+    try:
+        if request.method == 'POST':
+            data = request.get_json()
+            if data is None:
+                app.logger.error("Invalid move data provided.")
+                return jsonify({"error": "Invalid move data"}), 400
+            # Assign the move directly from the JSON data
+            current_move = data['move']
+            app.logger.info("Move updated to: %s", current_move)
+            return jsonify({"message": "Move updated successfully"}), 200
+
+        elif request.method == 'GET':
+            if current_move:
+                # Return the move as a part of a JSON object
+                return jsonify({"move": current_move}), 200
+            else:
+                app.logger.warning("No move data available.")
+                return jsonify({"error": "No move data available"}), 404
+
+    except Exception as e:
+        app.logger.error("An error occurred with move: %s", str(e))
         return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
